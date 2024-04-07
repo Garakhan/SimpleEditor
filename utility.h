@@ -40,37 +40,46 @@
 #define SEQLEN(str)             strlen(str)
 
 enum KEY_STROKES {
-    CTRL_Q          = 17,
     ENTER           = 13,
+    CTRL_Q          = 17,
+    ESC             = 27,
     BACKSPACE       = 127,
-    ESC             = 27
+    ARROW_LEFT = 1000,
+    ARROW_RIGHT,
+    ARROW_UP,
+    ARROW_DOWN,
+    DEL_KEY,
+    HOME_KEY,
+    END_KEY,
+    PAGE_UP,
+    PAGE_DOWN
 };
 
 
 namespace termaction {
 
     inline int mv2beg (int ofd) {
-        int seql = write(ofd, CURSOR_C_MV2BEG, SEQLEN(CURSOR_C_MV2BEG));
+        int seql = write(ofd, CURSOR_C_MV2BEG, CURSOR_L_MV2BEG);
         return seql;
     }
     inline int mv2end (int ofd) {
-        int seql = write(ofd, CURSOR_C_MV2END, SEQLEN(CURSOR_C_MV2END));
+        int seql = write(ofd, CURSOR_C_MV2END, CURSOR_L_MV2END);
         return seql;
     }
     inline int hidecursor (int ofd) {
-        int seql = write(ofd, CURSOR_C_HIDE, SEQLEN(CURSOR_C_HIDE));
+        int seql = write(ofd, CURSOR_C_HIDE, CURSOR_L_HIDE);
         return seql;
     }
     inline int showcursor (int ofd) {
-        int seql = write(ofd, CURSOR_C_SHOW, SEQLEN(CURSOR_C_SHOW));
+        int seql = write(ofd, CURSOR_C_SHOW, CURSOR_L_SHOW);
         return seql;
     }
     inline int clrscr (int ofd) {
-        int seql = write(ofd, CURSOR_C_CLRSCR, SEQLEN(CURSOR_C_CLRSCR));
+        int seql = write(ofd, CURSOR_C_CLRSCR, CURSOR_L_CLRSCR);
         return seql;
     }
     inline int clrght(int ofd) {
-        int seql = write(ofd, CURSOR_C_CLRGHT, SEQLEN(CURSOR_C_CLRGHT));
+        int seql = write(ofd, CURSOR_C_CLRGHT, CURSOR_L_CLRGHT);
         return seql;
     }
     inline int insertnl(int ofd) {
@@ -90,6 +99,12 @@ namespace termaction {
         int seql = write(ofd, s, l);
         return seql;
     }
+    inline size_t setCursorPos(int ofd, size_t *row, size_t *col) {
+        char cursorPosSeq[80];
+        sprintf(cursorPosSeq, "\x1b[%zu;%zuH", *row, *col);
+        size_t seq = write(ofd, cursorPosSeq, strlen(cursorPosSeq));
+        return seq;
+    }
 } 
 
 namespace termutil {
@@ -97,6 +112,7 @@ namespace termutil {
     int enableRawMode(int fd);
     struct winsize getWindowSize();
     int getCursorPosition(int, int, size_t*, size_t*);//Editor::cursorPos will be referenced
+    // int setCursorPosition(int, int, size_t*, size_t*);//send cursor to location. Editor::curosrPos will be referenced
     int getWindowSize(int, int, size_t*, size_t*);//Editor::cursorPos will be referenced
     int readKeyStroke(int);
 }

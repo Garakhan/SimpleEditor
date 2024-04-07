@@ -40,7 +40,7 @@ namespace termutil {
         if (sscanf(buf+2, "%d;%d", row, col)!=2) return -1;
         return 0;
     }
-
+    
     /** Querying window size of terminal
     */
     int getWindowSize(int ifd, int ofd, size_t *row, size_t *col) {

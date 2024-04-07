@@ -34,25 +34,25 @@ void Row::setLen(Row::row_nt length){
 
 Row::Row(){
     cnt = (char*)malloc(sizeof(char));
-    cnt[len]='\0';
+    cnt[len]=END_STRING;
     len=0;
 }
 Row::Row(Row::row_nt idx):idx(idx){
     cnt = (char*)malloc(sizeof(char));
-    cnt[len]='\0';
+    cnt[len]=END_STRING;
     len=0;
 }
 Row::Row(Row::row_nt idx, char* content):idx(idx){
     row_nt content_len = strlen(content);
     cnt = (char*)malloc(sizeof(char)*content_len);
     memcpy(cnt, content, strlen(content));
-    cnt[content_len]='\0';
+    cnt[content_len]=END_STRING;
     len = strlen(cnt);
 }
 Row::Row(Row::row_nt idx, char* content, row_nt length):idx(idx), len(length){
     cnt = (char*)malloc(sizeof(char)*(len+1));
     memcpy(cnt, content, len);
-    cnt[len] = '\0';
+    cnt[len] = END_STRING;
     // debug::wtf(NULL, NULL, "Constructor called with %s\n", cnt);
     // debug::wtf(NULL, NULL, "Length %d\n", strlen(cnt));
 }
@@ -63,7 +63,7 @@ Row::Row(const Row& row):idx(row.idx),len(row.len){
     }
     cnt = (char*)malloc(sizeof(char)*(len+1));
     memcpy(cnt, row.cnt, len);
-    cnt[len]='\0';
+    cnt[len]=END_STRING;
 }
 
 Row& Row::operator=(const Row& row) noexcept{
@@ -78,7 +78,7 @@ Row& Row::operator=(const Row& row) noexcept{
         cnt = (char*)malloc(sizeof(char)*(len+1));
         if(cnt==NULL) throw std::runtime_error("Cannot allocate memory for left hand side.");
         memcpy(cnt, row.cnt, len);
-        cnt[len]='\0';
+        cnt[len]=END_STRING;
     }
     return *this;
 }
@@ -112,11 +112,19 @@ int Row::updateRowContent(row_nt idx, char* add, row_nt length){
     // __BREAKPOINT__
 
     if(idx>len+1) throw std::range_error("Index to be added must be smaller than this->len");
+    if (add==""){//delete the character at idx
+        char* upd = (char*) malloc(sizeof(char)*(len));//new memory for one character deleted
+        memcpy(upd, cnt, idx);
+        memcpy(upd+idx, &(cnt[idx+1]), len-idx);//copy END_STRING with this operation as well
+        len--;
+        cnt=upd;
+        return 0;
+    }
     char* upd = (char*) malloc(sizeof(char)*(len+length+1));
     memcpy(upd, cnt, idx);
     memcpy(upd+idx, add, length);
     memcpy(upd+idx+length, &(cnt[idx]), len-idx);
-    upd[len+length]='\0';
+    upd[len+length]=END_STRING;
     free(cnt);
     cnt = upd;
     len += length;
@@ -135,7 +143,7 @@ Editor::Editor(){//empty editor
     winsize ws = termutil::getWindowSize();
     screenrows = ws.ws_row;
     editorCnt = (char*) malloc(sizeof(char));
-    editorCnt[0] = '\0';
+    editorCnt[0] = END_STRING;
     lenEditorCnt = 0;//\0 does not count
     cursorPosCol=0;
     cursorPosRow=0;
@@ -164,9 +172,9 @@ void Editor::editorFillTildas() {
 }
 
 void Editor::renderEditorCnt(){
-    if (lenEditorCnt!=0 || editorCnt[0]!='\0'){
+    if (lenEditorCnt!=0 || editorCnt[0]!=END_STRING){
         lenEditorCnt=0;
-        editorCnt[0]='\0';
+        editorCnt[0]=END_STRING;
     }
     for (auto& i : rows) {
         appendEditorContent(i.getContent(), i.getLen());//vector implamentation of rows
@@ -180,7 +188,7 @@ void Editor::appendEditorContent(char* cont, row_nt len){
     }
     memcpy(tmp+lenEditorCnt, cont, len);
     lenEditorCnt+=len;
-    editorCnt[lenEditorCnt] = '\0';
+    editorCnt[lenEditorCnt] = END_STRING;
     editorCnt = tmp;
 }
 
@@ -188,6 +196,8 @@ void Editor::refreshEditorScreen(){
     termaction::hidecursor(ofd);
     termaction::mv2beg(ofd);
     termaction::clrght(ofd);
+    // termaction::clrscr(ofd);
+    // termaction::setCursorPos(ofd, &cursorPosRow, &cursorPosCol);
     renderEditorCnt();
     termaction::twrite(ofd, editorCnt, lenEditorCnt);//with lenEditorContent
     termaction::showcursor(ofd);
@@ -254,6 +264,7 @@ int Editor::editorKeyAction(){
     int nc = 1;
     char c;
     if((c=termutil::readKeyStroke(ifd))!=-1) {
+    // debug::wtf(NULL, NULL, "Pressed: %d\n", c);
         switch(int(c)){
             case CTRL_Q:
                 return -1;
@@ -262,8 +273,13 @@ int Editor::editorKeyAction(){
                 editorEnterAction();
                 break;
             case BACKSPACE:
-                termaction::backspace(ofd);
+                // termaction::backspace(ofd);
+                editorBackSpaceAction();
                 break;
+            case ARROW_LEFT:
+                cursorPosCol--;
+                debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
+                adjustRowCol();
             default:
                 editorTypeAction(&c, nc);
                 break;
@@ -279,9 +295,6 @@ int Editor::type(int ofd, char* s, unsigned l) {//type characters to terminal
 
 int Editor::editorTypeAction(char* c, unsigned l) {//what to do when typing
     getRowAt(cursorPosRow)->updateRowContent(cursorPosCol, c, l);
-    // debug::wtf(NULL, NULL, "Row_%d content: %s\n", cursorPosRow, getRowAt(cursorPosRow)->getContent());
-    // debug::wtf(NULL, NULL, "cursorPosCol: %d\n", cursorPosCol);
-    // debug::wtf(NULL, NULL, "editorCnt: %s\n", editorCnt);
     cursorPosCol++;
     return 1;
 }
@@ -293,20 +306,42 @@ int Editor::editorEnterAction() {//what to do when ENTER pressed
         cursorPosCol=0;
         Row row = Row(cursorPosRow, "", 0);
         insertRowAt(row, cursorPosRow);
-        debug::wtf(NULL, NULL, "================\n");
-        debug::wtf(NULL, NULL, "VectorSize: %d\n", getNRow());
-        debug::wtf(NULL, NULL, "VectorLastContent: %s\n", getRowAt(cursorPosRow-1)->getContent());
-        debug::wtf(NULL, NULL, "EditorContent:\n %s\n", getEditorCnt());
+        // debug::wtf(NULL, NULL, "================\n");
+        // debug::wtf(NULL, NULL, "VectorSize: %d\n", getNRow());
+        // debug::wtf(NULL, NULL, "VectorLastContent: %s\n", getRowAt(cursorPosRow-1)->getContent());
+        // debug::wtf(NULL, NULL, "EditorContent:\n %s\n", getEditorCnt());
         return 1;
     }
     /** TODO: else statment
     */
 }
 
-int editorBackSpaceAction() {
-
+int Editor::editorBackSpaceAction() {
+    if (cursorPosCol!=0 || cursorPosRow!=0) {
+        cursorPosCol--;
+        adjustRowCol();
+        getRowAt(cursorPosRow)->updateRowContent(cursorPosCol, "", 0);
+        debug::wtf(NULL, NULL, "===============\n");
+        debug::wtf(NULL, NULL, "CursorRow: %d\n", cursorPosRow);
+        debug::wtf(NULL, NULL, "CursorCol: %d\n", cursorPosCol);
+        debug::wtf(NULL, NULL, "Len: %s\n", getRowAt(cursorPosRow-1)->getContent());
+        debug::wtf(NULL, NULL, "Len: %s\n", getRowAt(cursorPosRow)->getContent());
+    }
 }
 
+int Editor::adjustRowCol() {
+    if (cursorPosCol<0) {
+        if (cursorPosRow>0) {
+            cursorPosRow--;
+            cursorPosCol=getRowAt(cursorPosRow)->getLen();
+        }
+    } else if (cursorPosRow>=getNRow()) {
+        cursorPosRow = getNRow()-1;
+    } else if (cursorPosRow < 0) {
+        cursorPosRow = 0;
+    }
+    return 0;
+}
 
 // ================= Getters/Setters =================
 

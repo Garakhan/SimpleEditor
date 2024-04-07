@@ -10,6 +10,8 @@
 
 #include "utility.h"
 
+#define END_STRING '\0'
+
 // ========== Types ==========
 class Types {
     protected:
@@ -82,17 +84,24 @@ class Editor : private Types {
     // template<typename R> void pushBackRow(R&&);//pushback Row
     // template<typename R> void pushBackRow(Row&&);//pushback Row
     char* getEditorCnt();//get char* Editorcontent
+
+    // ========= Editor Key Action =========
+    int editorBackSpaceAction();
     int editorKeyAction();
     int editorEnterAction();
     int editorTypeAction(char*, unsigned);
     int type(int, char*, unsigned);//abastraction for termaction::twrite()
-    int getCursorPosition();
+
     int getWindowSize();
     void editorFillTildas();
 
+    // ========== Editor Cursor Position =========
+    int getCursorPosition();
+    int adjustRowCol();//adjust update Row or Col depending on one another
 
     //friend functions
     friend int termutil::getCursorPosition(int, int, size_t*, size_t*);
+    friend inline size_t termaction::setCursorPos(int, size_t*, size_t*);
     friend int termutil::getWindowSize(int, int, size_t*, size_t*);
 
 };

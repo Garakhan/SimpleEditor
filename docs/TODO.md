@@ -1,3 +1,7 @@
+### Left
+- backspace for other rows. Figure out how to update the editor content.
+### Refactor
+- refactor return operations; 0 for true, -1 for false;
 ### std::string
 - Translate from C-style malloc/realloc char* to std::string C++ style.
 ### Implementing rvalue references for constructors

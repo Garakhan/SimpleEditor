@@ -59,7 +59,7 @@ void editorQuit(int inp=STDIN_FILENO){
 int main(int argc, char** argv) {
     TerminalHandleException::TerminalConnectionError();
     Editor e;
-    // e.renderEditorCnt();
+    e.renderEditorCnt();
     char* scrnCnt = e.getEditorCnt();
     // __PRINT__(strlen(scrnCnt));
     // debug::wtf(NULL, NULL, "%s\n", scrnCnt);
@@ -68,6 +68,9 @@ int main(int argc, char** argv) {
     termaction::hidecursor(STDOUT_FILENO);
     termaction::clrscr(STDOUT_FILENO);
     termaction::mv2beg(STDOUT_FILENO);
+    // size_t row =  4;
+    // size_t col = 5;
+    // termaction::setCursorPos(STDOUT_FILENO, &row, &col);
     termaction::clrght(STDOUT_FILENO);
     write(STDOUT_FILENO, scrnCnt, strlen(scrnCnt));
     termaction::mv2beg(STDOUT_FILENO);
