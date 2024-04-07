@@ -13,6 +13,7 @@ ifeq ($(DEBUG), true)
 	@echo -----------------------------
 	@cd $(build_dir) && lldb $(basename $(project_name))
 else
+	@make debug
 	@cd $(build_dir) && rm -rf debug.txt && make
 	@echo -----------------------------
 	@cd $(build_dir) && ./$(basename $(project_name))
@@ -36,3 +37,7 @@ ifeq ($(DEBUG), true)
 else
 	@echo false
 endif
+
+debug:
+	@rm -rf debug.txt
+	@touch debug.txt

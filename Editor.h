@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <memory>
+#include <stdexcept>
 #include <unordered_map>
 
 #include "utility.h"
@@ -19,7 +20,7 @@ class Types {
 class Row : private Types {
     row_nt idx; //index of the current row
     char* cnt=NULL; // content of the row
-    row_nt l;
+    row_nt len;
 
     public:
 
@@ -27,19 +28,20 @@ class Row : private Types {
     Row(row_nt);
     Row(row_nt, char*);
     Row(row_nt, char*, row_nt);
-    Row(Row&& row);
-    Row(Row& row);
-    Row& operator=(Row&&) noexcept;
-    Row& operator=(Row&) noexcept;
+    // Row(Row&& row);
+    Row(const Row& row);
+    // Row& operator=(Row&&) noexcept;
+    Row& operator=(const Row&) noexcept;
     ~Row();
     row_nt getIdx(void);
-    char* getContent(void);
+    char* getContent(void) const;
     void setIdx(row_nt);
     void setContent(char*);
     void setContent(char*, row_nt);
-    row_nt getLen();
+    row_nt getLen() const;
     void setLen(row_nt);
     int updateRowContent(row_nt, char*, row_nt);
+    // int updateRowContent(row_nt, char, row_nt);
 
 };
 
@@ -73,15 +75,20 @@ class Editor : private Types {
      * 
     */ 
     void appendEditorContent(char*, row_nt);//dynamically append to char* editorContent
-    template<typename R> void insertRowAt(R&&, row_nt);//insert Row
-    template<typename R> void pushBackRow(R&&);//pushback Row
+    // template<typename R> void insertRowAt(R&&, row_nt);//insert Row
+    // template<typename R> void insertRowAt(R&&);//insert Row
+    void insertRowAt(Row&);//insert Row
+    void insertRowAt(Row&, row_nt);//insert Row
+    // template<typename R> void pushBackRow(R&&);//pushback Row
+    // template<typename R> void pushBackRow(Row&&);//pushback Row
     char* getEditorCnt();//get char* Editorcontent
-    void editorCursorAction();
+    int editorKeyAction();
     int editorEnterAction();
     int editorTypeAction(char*, unsigned);
     int type(int, char*, unsigned);//abastraction for termaction::twrite()
     int getCursorPosition();
     int getWindowSize();
+    void editorFillTildas();
 
 
     //friend functions

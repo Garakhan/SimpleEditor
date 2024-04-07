@@ -60,7 +60,10 @@ int main(int argc, char** argv) {
     TerminalHandleException::TerminalConnectionError();
     Editor e;
     // e.renderEditorCnt();
-    auto scrnCnt = e.getEditorCnt();
+    char* scrnCnt = e.getEditorCnt();
+    // __PRINT__(strlen(scrnCnt));
+    // debug::wtf(NULL, NULL, "%s\n", scrnCnt);
+    // exit(1);
     // cout<<scrnCnt<<endl;
     termaction::hidecursor(STDOUT_FILENO);
     termaction::clrscr(STDOUT_FILENO);
@@ -71,8 +74,9 @@ int main(int argc, char** argv) {
     termaction::showcursor(STDOUT_FILENO);
     enableRawMode(STDIN_FILENO);
     // termutil::enableRawMode();
+    int act;
     while(1){
-        e.editorCursorAction();
+        if (e.editorKeyAction()==-1) break;
     }
     return 0;
 
