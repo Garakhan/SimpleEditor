@@ -77,7 +77,6 @@ int main(int argc, char** argv) {
     termaction::showcursor(STDOUT_FILENO);
     enableRawMode(STDIN_FILENO);
     // termutil::enableRawMode();
-    int act;
     while(1){
         if (e.editorKeyAction()==-1) break;
     }

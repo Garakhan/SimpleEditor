@@ -15,7 +15,8 @@
 // ========== Types ==========
 class Types {
     protected:
-    typedef size_t row_nt;//row number
+    // typedef size_t row_nt;//row number
+    typedef int row_nt;//row number
 };
 
 // ========== ROW ============
@@ -100,9 +101,9 @@ class Editor : private Types {
     int adjustRowCol();//adjust update Row or Col depending on one another
 
     //friend functions
-    friend int termutil::getCursorPosition(int, int, size_t*, size_t*);
-    friend inline size_t termaction::setCursorPos(int, size_t*, size_t*);
-    friend int termutil::getWindowSize(int, int, size_t*, size_t*);
+    friend int termutil::getCursorPosition(int, int, int*, int*);
+    friend inline size_t termaction::setCursorPos(int, int, int);
+    friend int termutil::getWindowSize(int, int, int*, int*);
 
 };
 

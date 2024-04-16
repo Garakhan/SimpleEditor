@@ -22,7 +22,7 @@ namespace termutil {
 
     /** Query cursor position to &Editor::cursorPos
     */
-    int getCursorPosition(int ifd, int ofd, size_t *row, size_t *col) {
+    int getCursorPosition(int ifd, int ofd, int *row, int *col) {
         int buf_size = 32;
         char buf[buf_size];
         unsigned i=0;
@@ -43,10 +43,10 @@ namespace termutil {
     
     /** Querying window size of terminal
     */
-    int getWindowSize(int ifd, int ofd, size_t *row, size_t *col) {
+    int getWindowSize(int ifd, int ofd, int *row, int *col) {
         winsize ws;
         if (ioctl(ifd, TCIFLUSH, TIOCGWINSZ)==-1) {//get with cursor
-            size_t orig_row, orig_col;
+            int orig_row, orig_col;
 
             //get original cursor position
             if (getCursorPosition(ifd, ofd, &orig_col, &orig_row)==-1) return -1;

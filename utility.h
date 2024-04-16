@@ -19,7 +19,7 @@
 #define CURSOR_C_MV2END         "\x1b[L"
 #define CURSOR_C_HIDE           "\x1b[?25l"
 #define CURSOR_C_SHOW           "\x1b[?25h"
-#define CURSOR_C_CLRSCR         "\x1b[2J"
+#define CURSOR_C_CLRSCR         "\x1b[1J"
 #define CURSOR_C_CLRGHT         "\x1b[K"
 #define CURSOR_C_TILDA          "~\x1b[0K\r\n"
 #define CURSOR_C_NEWLINE        "\x1b[0K\r\n"
@@ -44,6 +44,12 @@ enum KEY_STROKES {
     CTRL_Q          = 17,
     ESC             = 27,
     BACKSPACE       = 127,
+    LEFT_SQUARE     = 91,
+    UP_ARROW        = 65,
+    DOWN_ARROW,
+    RIGHT_ARROW,
+    LEFT_ARROW,
+
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
     ARROW_UP,
@@ -99,9 +105,9 @@ namespace termaction {
         int seql = write(ofd, s, l);
         return seql;
     }
-    inline size_t setCursorPos(int ofd, size_t *row, size_t *col) {
+    inline size_t setCursorPos(int ofd, int row, int col) {
         char cursorPosSeq[80];
-        sprintf(cursorPosSeq, "\x1b[%zu;%zuH", *row, *col);
+        sprintf(cursorPosSeq, "\x1b[%zu;%zuH", row, col);
         size_t seq = write(ofd, cursorPosSeq, strlen(cursorPosSeq));
         return seq;
     }
@@ -111,9 +117,9 @@ namespace termutil {
     extern termios original_terminal;
     int enableRawMode(int fd);
     struct winsize getWindowSize();
-    int getCursorPosition(int, int, size_t*, size_t*);//Editor::cursorPos will be referenced
+    int getCursorPosition(int, int, int*, int*);//Editor::cursorPos will be referenced
     // int setCursorPosition(int, int, size_t*, size_t*);//send cursor to location. Editor::curosrPos will be referenced
-    int getWindowSize(int, int, size_t*, size_t*);//Editor::cursorPos will be referenced
+    int getWindowSize(int, int, int*, int*);//Editor::cursorPos will be referenced
     int readKeyStroke(int);
 }
 
