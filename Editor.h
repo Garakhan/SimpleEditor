@@ -21,36 +21,52 @@ class Types {
 
 // ========== ROW ============
 class Row : private Types {
-    row_nt idx; //index of the current row
-    char* cnt=NULL; // content of the row
-    row_nt len;
+
+    /** TODO: fix move constructors
+    */ 
+
+    int idx; //index of the current row
+    char* content=NULL; // content of the row => literal chars
+    char* rendered=NULL;//rendered content of row
+    int length;
 
     public:
 
+    // CONSTRUCTORS
     Row();
-    Row(row_nt);
-    Row(row_nt, char*);
-    Row(row_nt, char*, row_nt);
-    // Row(Row&& row);
+    Row(int);
+    Row(int, char*);
+    Row(int, char*, int);
     Row(const Row& row);
-    // Row& operator=(Row&&) noexcept;
     Row& operator=(const Row&) noexcept;
+    // Row(Row&& row);
+    // Row& operator=(Row&&) noexcept;
     ~Row();
-    row_nt getIdx(void);
-    char* getContent(void) const;
-    void setIdx(row_nt);
-    void setContent(char*);
-    void setContent(char*, row_nt);
-    row_nt getLen() const;
-    void setLen(row_nt);
-    int updateRowContent(row_nt, char*, row_nt);
-    // int updateRowContent(row_nt, char, row_nt);
 
+    int getIdx(void);
+    void setIdx(int);
+    char* getContent(void) const;
+    void setContent(char*);
+    void setContent(char*, int);
+    void getRendered(void) const;
+    int getLen() const;
+    void setLen(int);
+    int updateRowContent(int, char*, int);//idx, chars, len
+    int insertRowContent(int, char*, int);//idx, chars, len
+    int delRowContent(int, int, int);//idx, len, direc
+    int delRowContentRight(int, int);//idx, len
+    int delRowContentLeft(int, int);//idx, len
 };
 
 
 // =========== Editor ===============
 class Editor : private Types {
+
+    /** TODO:use string.h append method instead of appendEditorContent
+     * TODO: fix template functions
+     * TODO: fix functions for right hand referecnces for the move constructors of Row
+    */ 
+
     std::vector<Row> rows; // rows of the editor
     // std::unordered_map<row_nt, Row> rows;
     row_nt screenrows; // number of visible row on screen
@@ -68,23 +84,35 @@ class Editor : private Types {
     // method functions
     ~Editor();
     Editor();
+
     Row* getRowAt(row_nt);//get row at index
     row_nt getScreenRows(void);//get screenrows (number of visible(window) screen)
     void setNScreenRows(row_nt);//set screenrows (number of visible(window) screen)
     row_nt getNRow(void);//get number of rows (size of std::vector<Row> rows)
+    
+
+    // ========= Editor Exit =========
+    void editorExitAction();//for CTRL_Q
+    friend int termaction::enableRawMode(int);
+    friend int termaction::disableRawMode(int);
+
+
+    // ========= Screen Update =========
     void refreshEditorScreen();//refreshing the editor screen to update visible screen content
     void renderEditorCnt();//write contents of all rows std::vector<Row> rows to char* editorCnt
-    /** TODO:use string.h append method instead of appendEditorContent
-     * 
-    */ 
-    void appendEditorContent(char*, row_nt);//dynamically append to char* editorContent
-    // template<typename R> void insertRowAt(R&&, row_nt);//insert Row
-    // template<typename R> void insertRowAt(R&&);//insert Row
+    void appendEditorContent(char*, int);//dynamically append to char* editorContent
+    char* getEditorCnt();//get char* Editorcontent
+
+    // ========= Row Management =========
     void insertRowAt(Row&);//insert Row
-    void insertRowAt(Row&, row_nt);//insert Row
+    void insertRowAt(Row&, int);//insert Row
+    void removeRowAt(int);//remove Row
+    void handleRemoveRow(int);//write content of row to another, and delete
+    void handleBreakRow(int, int);//break row at idx and create two rows
     // template<typename R> void pushBackRow(R&&);//pushback Row
     // template<typename R> void pushBackRow(Row&&);//pushback Row
-    char* getEditorCnt();//get char* Editorcontent
+    // template<typename R> void insertRowAt(R&&, row_nt);//insert Row
+    // template<typename R> void insertRowAt(R&&);//insert Row
 
     // ========= Editor Key Action =========
     int editorBackSpaceAction();
@@ -101,11 +129,13 @@ class Editor : private Types {
     int adjustRowCol();//adjust update Row or Col depending on one another
 
     //friend functions
-    friend int termutil::getCursorPosition(int, int, int*, int*);
+    friend int termaction::getCursorPosition(int, int, int*, int*);
     friend inline size_t termaction::setCursorPos(int, int, int);
-    friend int termutil::getWindowSize(int, int, int*, int*);
+    friend int termaction::getWindowSize(int, int, int*, int*);
+
+    //main loop
+    void *mainLoop();
 
 };
-
 
 #endif

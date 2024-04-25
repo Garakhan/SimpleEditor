@@ -53,33 +53,12 @@ fatal:
     return -1;
 }
 
-void editorQuit(int inp=STDIN_FILENO){
-}
 
 int main(int argc, char** argv) {
-    TerminalHandleException::TerminalConnectionError();
     Editor e;
-    e.renderEditorCnt();
-    char* scrnCnt = e.getEditorCnt();
-    // __PRINT__(strlen(scrnCnt));
-    // debug::wtf(NULL, NULL, "%s\n", scrnCnt);
-    // exit(1);
-    // cout<<scrnCnt<<endl;
-    termaction::hidecursor(STDOUT_FILENO);
-    termaction::clrscr(STDOUT_FILENO);
-    termaction::mv2beg(STDOUT_FILENO);
-    // size_t row =  4;
-    // size_t col = 5;
-    // termaction::setCursorPos(STDOUT_FILENO, &row, &col);
-    termaction::clrght(STDOUT_FILENO);
-    write(STDOUT_FILENO, scrnCnt, strlen(scrnCnt));
-    termaction::mv2beg(STDOUT_FILENO);
-    termaction::showcursor(STDOUT_FILENO);
-    enableRawMode(STDIN_FILENO);
-    // termutil::enableRawMode();
-    while(1){
-        if (e.editorKeyAction()==-1) break;
-    }
-    return 0;
-
+    termaction::clrscr(TERM_READ_FD);
+    termaction::mv2beg(TERM_WRITE_FD);
+    termaction::clrscr(TERM_READ_FD);
+    termaction::enableRawMode(TERM_WRITE_FD);
+    e.mainLoop();
 }

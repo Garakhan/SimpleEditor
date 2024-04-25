@@ -6,10 +6,36 @@
 using namespace std;
 #endif
 
-namespace termutil {
+namespace termaction {
     termios original_terminal;
     int enableRawMode(int fd){
-        // if (!isatty(STDIN_FILENO))  
+        termios term;
+        if (!isatty(fd)) throw runtime_error("Cannot read Unix terminal to interact. \
+                        Make sure SimpleEditor called on Unix terminal.");
+        atexit(exitFunction);
+        if(tcgetattr(fd, &original_terminal)==-1) {
+            errno = ENOENT;
+            throw runtime_error("Cannot get attributes of terminal. Make sure SimpleEditor called on Unix terminal.");
+            return -1;
+        }
+        term = original_terminal;
+        term.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+        term.c_oflag &= ~(OPOST);
+        term.c_cflag |= (CS8);
+        term.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+        term.c_cc[VMIN]=0;
+        term.c_cc[VTIME]=1;
+        if(tcsetattr(fd, TCSAFLUSH, &term)<0) {
+            errno = ENOENT;
+            throw runtime_error("Cannot set attributes of terminal. Make sure SimpleEditor called on Unix terminal.");
+            return -1;
+        }
+    }
+    void exitFunction() {
+        disableRawMode(STDOUT_FILENO);
+    }
+    int disableRawMode(int fd){
+        tcsetattr(fd, TCSAFLUSH, &original_terminal);
     }
 
     struct winsize getWindowSize() {
@@ -27,7 +53,7 @@ namespace termutil {
         char buf[buf_size];
         unsigned i=0;
 
-        if (termaction::qcurspos(ofd)!=4)
+        if (qcurspos(ofd)!=4)//query cursor position
             return -1;
         
         while(i<buf_size-1){

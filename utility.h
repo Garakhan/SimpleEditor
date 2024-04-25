@@ -9,17 +9,21 @@
 
 #include "debug.h"
 #include "exception.h"
+
 #if defined(__DEBUG__)
     #include <iostream>
 #endif
 
 #define __UNUSED__ __attribute__((unused))
 
+#define TERM_READ_FD  STDIN_FILENO
+#define TERM_WRITE_FD STDOUT_FILENO
+
 #define CURSOR_C_MV2BEG         "\x1b[H"
 #define CURSOR_C_MV2END         "\x1b[L"
 #define CURSOR_C_HIDE           "\x1b[?25l"
 #define CURSOR_C_SHOW           "\x1b[?25h"
-#define CURSOR_C_CLRSCR         "\x1b[1J"
+#define CURSOR_C_CLRSCR         "\x1b[J"
 #define CURSOR_C_CLRGHT         "\x1b[K"
 #define CURSOR_C_TILDA          "~\x1b[0K\r\n"
 #define CURSOR_C_NEWLINE        "\x1b[0K\r\n"
@@ -38,6 +42,7 @@
 #define CURSOR_L_RGHTBTM        12
 #define CURSOR_L_BACKSPC        3
 #define SEQLEN(str)             strlen(str)
+
 
 enum KEY_STROKES {
     ENTER           = 13,
@@ -111,11 +116,11 @@ namespace termaction {
         size_t seq = write(ofd, cursorPosSeq, strlen(cursorPosSeq));
         return seq;
     }
-} 
 
-namespace termutil {
     extern termios original_terminal;
     int enableRawMode(int fd);
+    int disableRawMode(int fd);
+    void exitFunction(void);
     struct winsize getWindowSize();
     int getCursorPosition(int, int, int*, int*);//Editor::cursorPos will be referenced
     // int setCursorPosition(int, int, size_t*, size_t*);//send cursor to location. Editor::curosrPos will be referenced
