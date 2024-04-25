@@ -179,7 +179,7 @@ Row::~Row(){free(this->content);}
 // ============== Constructors ==============
 Editor::Editor(){//empty editor
     winsize ws = termaction::getWindowSize();
-    screenrows = ws.ws_row;
+    screenrows = ws.ws_row-1;
     editorCnt = (char*) malloc(sizeof(char));
     lenEditorCnt = 0;//\0 does not count
     editorCnt[lenEditorCnt] = END_STRING;
@@ -204,8 +204,10 @@ Editor::~Editor(){
 
 void Editor::editorFillTildas() {
     for (int i=rows.size(); i<screenrows; i++){
-        appendEditorContent(CURSOR_C_TILDA, CURSOR_L_TILDA);
+        appendEditorContent("~\r\n", 3);
     }
+    // debug::wtf(NULL, NULL, "%s\n", editorCnt);
+    // debug::wtf(NULL, NULL, "----------------\n");
 }
 
 void Editor::renderEditorCnt(){
@@ -247,6 +249,7 @@ void Editor::refreshEditorScreen(){
     //     getRowAt(cursorPosRow)->getContent(),
     //     getRowAt(cursorPosRow)->getLen()
     // );//with lenEditorContent
+    editorFillTildas();
     termaction::twrite(ofd, editorCnt, lenEditorCnt);
     // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
     // debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
