@@ -73,7 +73,6 @@ Row::Row(const Row& row):idx(row.idx),length(row.length){
     // if (content!=NULL) {
     //     content=NULL;
     // }
-    // debug::wtf(NULL, NULL, "__BREAKPOINT_copyConstructor__\n");
     this->content = (char*)malloc(sizeof(char)*(this->length+1));
     if (this->content==NULL) {
         throw std::runtime_error("Could not allocate memory at copy constructor");
@@ -84,6 +83,7 @@ Row::Row(const Row& row):idx(row.idx),length(row.length){
 Row& Row::operator=(const Row& row) noexcept{
     if(this!=&row){
         this->idx=row.idx;
+        this->length = row.length;
         // this->content=row.content;
         // this->cnt=row.cnt;
         if (content!=NULL) {
@@ -145,8 +145,6 @@ int Row::insertRowContent(int idx, char* add, int len) {
     this->content = (char*) realloc(this->content, sizeof(char)*(this->length+len+1));
     memmove(this->content+idx+len, this->content+idx, this->length-idx);
     memcpy(this->content+idx, add, len);
-    // debug::wtf(NULL, NULL, "__BREAKPOINT_insertRowContent__\n");
-    // debug::wtf(NULL, NULL, "RowCont: '%s'\n", this->content);
     this->length+=len;
     this->content[this->length]=END_STRING;
     return 0;
@@ -155,9 +153,6 @@ int Row::delRowContent(int idx, int len, int dir){//not fully as intented
     if (len > this->length) {
     }
     idx = idx+dir*(len-1)-1;
-    // debug::wtf(NULL, NULL, "Part: %d\n", idx);
-    // debug::wtf(NULL, NULL, "Part: %s\n", this->content+idx);
-    // debug::wtf(NULL, NULL, "Part: %s\n", this->content+idx+len);
     memmove(this->content+idx, this->content+idx+len, this->length-idx-len);
     this->length -= len;
     this->content = (char*) realloc(this->content, sizeof(char)*this->length+1);
@@ -167,9 +162,6 @@ int Row::delRowContent(int idx, int len, int dir){//not fully as intented
 int Row::delRowContentRight(int idx, int len){
     if (len > this->length) {
     }
-    // debug::wtf(NULL, NULL, "Part: %d\n", idx);
-    // debug::wtf(NULL, NULL, "Part: %s\n", this->content+idx);
-    // debug::wtf(NULL, NULL, "Part: %s\n", this->content+idx+len);
     memmove(this->content+idx, this->content+idx+len, this->length-idx-len+1);
     this->length -= len;
     this->content = (char*) realloc(this->content, sizeof(char)*(this->length+1));
@@ -179,9 +171,6 @@ int Row::delRowContentRight(int idx, int len){
 int Row::delRowContentLeft(int idx, int len){
     if (len > this->length) {
     }
-    // debug::wtf(NULL, NULL, "Part: %d\n", idx);
-    // debug::wtf(NULL, NULL, "Part: %s\n", this->content+idx);
-    // debug::wtf(NULL, NULL, "Part: %s\n", this->content+idx+len);
     memmove(this->content+idx-len+1, this->content+idx+1, this->length-idx-1);
     this->length -= len;
     this->content = (char*) realloc(this->content, sizeof(char)*(this->length+1));
@@ -190,7 +179,6 @@ int Row::delRowContentLeft(int idx, int len){
 }
 
 Row::~Row(){
-    // debug::wtf(NULL, NULL, "__BREAKPOINT_rowDestructor__\n");
     if(this->content!=NULL){
         free(this->content);
         this->content=NULL;
@@ -239,8 +227,6 @@ void Editor::editorFillTildas() {
     for (int i=rows.size(); i<screenrows; i++){
         appendEditorContent("~\r\n", 3);
     }
-    // debug::wtf(NULL, NULL, "%s\n", editorCnt);
-    // debug::wtf(NULL, NULL, "----------------\n");
 }
 
 void Editor::renderEditorCnt(){
@@ -253,11 +239,9 @@ void Editor::renderEditorCnt(){
     lenEditorCnt=0;
     editorCnt=(char*)malloc(sizeof(char));
     for (auto& i : rows) {
-        // debug::wtf(NULL, NULL, "%s\n", i.getContent());
         appendEditorContent(i.getContent(), i.getLen());//vector implamentation of rows
         appendEditorContent("\r\n", 2);
     }
-    // debug::wtf(NULL, NULL, "----------------\n");
 }
 
 void Editor::appendEditorContent(char* cont, int len){
@@ -272,20 +256,15 @@ void Editor::appendEditorContent(char* cont, int len){
 }
 
 void Editor::refreshEditorScreen(){
-    // debug::wtf(NULL, NULL, "__BREAKPOINT_refreshEditorScreen__\n");
-    // debug::wtf(NULL, NULL, "=======================\n");
-    for (auto& i : rows) {
-        debug::wtf(NULL, NULL, "Row %d: '%s'\n", i.getIdx(), i.getContent());
-    }
+    // for (auto& i : rows) {
+    //     debug::wtf(NULL, NULL, "Row %d: '%s'\n", i.getIdx(), i.getContent());
+    // }
     termaction::hidecursor(ofd);
     // termaction::setCursorPos(ofd, cursorPosRow+1, 1);
     // termaction::clrght(ofd);
-    // if (lenEditorCnt>20) {
     termaction::mv2beg(ofd);
     termaction::clrscr(ofd);
-    // }
     renderEditorCnt();
-    // debug::wtf(NULL, NULL, "%s\n", editorCnt);
     // termaction::twrite(
     //     ofd,
     //     getRowAt(cursorPosRow)->getContent(),
@@ -293,9 +272,6 @@ void Editor::refreshEditorScreen(){
     // );//with lenEditorContent
     editorFillTildas();
     termaction::twrite(ofd, editorCnt, lenEditorCnt);
-    // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
-    // debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
-    // debug::wtf(NULL, NULL, "\nContent: %s\n", editorCnt);
     // adjustRowCol();
 
     termaction::setCursorPos(ofd, cursorPosRow+1, cursorPosCol+1);//real cursorPos is less 1 because of container idx
@@ -335,7 +311,6 @@ void Editor::insertRowAt(Row& row, int idx) {
     } else {
         // rows.insert(rows.begin()+idx, std::forward<Row>(row));//vector implementation of rows
         rows.insert(rows.begin()+idx, row);//vector implementation of rows
-        debug::wtf(NULL, NULL, "ROW INSERT\n");
     }
     // rows[idx]=row;//unordered_map implementation of rows
 }
@@ -357,10 +332,7 @@ void Editor::removeRowAt(int idx) {
         rows.pop_back();//vector implementation of rows
     } else {
         // rows.insert(rows.begin()+idx, std::forward<Row>(row));//vector implementation of rows
-        // debug::wtf(NULL, NULL, "__BREAKPOINT_removeRowAt__\n");
-        // debug::wtf(NULL, NULL, "rowslen: %d\n", getNRow());
         rows.erase(rows.begin()+idx);//vector implementation of rows
-        // debug::wtf(NULL, NULL, "__BREAKPOINT_removeRowAt__\n");
     }
     // rows[idx]=row;//unordered_map implementation of rows
 }
@@ -368,15 +340,10 @@ void Editor::removeRowAt(int idx) {
 void Editor::handleRemoveRow(int idx){
     // char *tmp_cnt = getRowAt(idx)->getContent();
     Row *rowUp = getRowAt(idx-1);
-    // debug::wtf(NULL, NULL, "LenUp: %d\n", rowUp->getLen());
     Row *rowDown = getRowAt(idx);
-    // debug::wtf(NULL, NULL, "LenUp: %d\n", rowUp->getLen());
-    // debug::wtf(NULL, NULL, "ContDown: '%s'\n", rowDown->getContent());
-    // debug::wtf(NULL, NULL, "LenDown: %d\n", rowDown->getLen());
     // getRowAt(idx-1)->updateRowContent(rowUp->getLen(), rowDown->getContent(), rowDown->getLen());
     getRowAt(idx-1)->insertRowContent(rowUp->getLen(), rowDown->getContent(), rowDown->getLen());
     removeRowAt(idx);
-    // debug::wtf(NULL, NULL, "__BREAKPOINT_handleRemoveRow\n");
 }
 
 void Editor::handleBreakRow(int idxr, int idxc){
@@ -409,8 +376,6 @@ int Editor::editorKeyAction(){
     size_t row = 8;
     size_t col = 10;
     if((c=termaction::readKeyStroke(ifd))!=-1) {
-    // debug::wtf(NULL, NULL, "Read C: %d\n", c);
-    // debug::wtf(NULL, NULL, "Pressed: %d\n", c);
         switch(int(c)){
             case CTRL_Q:
                 editorExitAction();//atexit will handle post-exit setups(disableRawMode). see termaction:: at utility.h
@@ -424,7 +389,6 @@ int Editor::editorKeyAction(){
             case BACKSPACE:
                 // termaction::backspace(ofd);
                 editorBackSpaceAction();
-                // debug::wtf(NULL, NULL, "__BREAKPOINT_editorKeyAction__\n");
                 break;
             case ESC:
                 if ((c=termaction::readKeyStroke(ifd))!=-1 && c==LEFT_SQUARE){
@@ -452,7 +416,6 @@ int Editor::editorKeyAction(){
                 break;
             // case ARROW_LEFT:
             //     cursorPosCol--;
-            //     debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
             //     // adjustRowCol();
             //     break;
             default:
@@ -472,29 +435,20 @@ int Editor::editorTypeAction(char* c, unsigned l) {//what to do when typing
     getRowAt(cursorPosRow)->insertRowContent(cursorPosCol, c, l);
     cursorPosCol++;
     adjustRowCol();
-    // debug::wtf(NULL, NULL, "%d\n", cursorPosCol);
     return 0;
 }
 
 int Editor::editorEnterAction() {//what to do when ENTER pressed
     if (cursorPosCol==getRowAt(cursorPosRow)->getLen()) {
         // getRowAt(cursorPosRow)->updateRowContent(cursorPosCol, "\r\n", 2);
-        // debug::wtf(NULL, NULL, "================\n");
-        // debug::wtf(NULL, NULL, "VectorSize: %d\n", getNRow());
-        // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
         cursorPosRow++;
         cursorPosCol=0;
-        Row row = Row(cursorPosRow, " ", 0);
+        Row row = Row(cursorPosRow, "", 0);
         insertRowAt(row, cursorPosRow);
-        // debug::wtf(NULL, NULL, "-----------------\n");
-        // debug::wtf(NULL, NULL, "VectorSize: %d\n", getNRow());
-        // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
-        // debug::wtf(NULL, NULL, "================\n");
-        // debug::wtf(NULL, NULL, "VectorLastContent: %s\n", getRowAt(cursorPosRow-1)->getContent());
-        // debug::wtf(NULL, NULL, "EditorContent:\n %s\n", getEditorCnt());
         return 0;
     } 
-    handleBreakRow(cursorPosRow++, cursorPosCol);
+    handleBreakRow(cursorPosRow, cursorPosCol);
+    cursorPosRow++;
     cursorPosCol=0;
     return 0;
 }
@@ -503,8 +457,6 @@ int Editor::editorBackSpaceAction() {
     if (cursorPosCol-1<0) {
         if (cursorPosRow>0) {
             cursorPosCol=getRowAt(cursorPosRow-1)->getLen();//send 
-            // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
-            // debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
             handleRemoveRow(cursorPosRow);
             cursorPosRow--;
             return 0;
@@ -513,8 +465,6 @@ int Editor::editorBackSpaceAction() {
             return 0;
         }
     }
-    // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
-    // debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
     // getRowAt(cursorPosRow)->updateRowContent(cursorPosCol, "", -1);
     getRowAt(cursorPosRow)->delRowContentLeft(--cursorPosCol, 1);
 }
@@ -533,8 +483,6 @@ int Editor::adjustRowCol() {
     } else if (cursorPosRow < 0) {
         cursorPosRow = 0;
     } else if (cursorPosCol>getRowAt(cursorPosRow)->getLen()) {
-        // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
-        // debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
         if (cursorPosRow<getNRow()-1) {
             cursorPosRow++;
             cursorPosCol=0;

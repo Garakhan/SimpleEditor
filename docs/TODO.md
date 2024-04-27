@@ -1,5 +1,5 @@
 ### Left
-- HandleRowbreak (this is bug).
+- Move constructor for Row
 - Window size change (not implemented).
 ### Refactor
 - refactor return operations; 0 for true, -1 for false;
