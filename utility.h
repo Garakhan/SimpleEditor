@@ -23,7 +23,7 @@
 #define CURSOR_C_MV2END         "\x1b[L"
 #define CURSOR_C_HIDE           "\x1b[?25l"
 #define CURSOR_C_SHOW           "\x1b[?25h"
-#define CURSOR_C_CLRSCR         "\x1b[J"
+#define CURSOR_C_CLRSCR         "\x1b[J"//clearscrean
 #define CURSOR_C_CLRGHT         "\x1b[K"
 #define CURSOR_C_TILDA          "~\x1b[0K\r\n"
 #define CURSOR_C_NEWLINE        "\x1b[0K\r\n"
@@ -47,6 +47,7 @@
 enum KEY_STROKES {
     ENTER           = 13,
     CTRL_Q          = 17,
+    CTRL_W          = 23,
     ESC             = 27,
     BACKSPACE       = 127,
     LEFT_SQUARE     = 91,

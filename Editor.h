@@ -115,6 +115,7 @@ class Editor : private Types {
     // template<typename R> void insertRowAt(R&&);//insert Row
 
     // ========= Editor Key Action =========
+    int editorDeleteWordAction();
     int editorBackSpaceAction();
     int editorKeyAction();
     int editorEnterAction();

@@ -373,12 +373,16 @@ int Editor::editorKeyAction(){
     int nc = 1;
     char c;
     char cursorPosSeq[80];
-    size_t row = 8;
-    size_t col = 10;
+    int row = 8;
+    int col = 10;
     if((c=termaction::readKeyStroke(ifd))!=-1) {
+        // debug::wtf(NULL, NULL, "Pressed: %d\n", c);
         switch(int(c)){
             case CTRL_Q:
                 editorExitAction();//atexit will handle post-exit setups(disableRawMode). see termaction:: at utility.h
+                break;
+            case CTRL_W:
+                editorDeleteWordAction();
                 break;
             case ENTER:
                 // termaction::setCursorPos(ofd, &row, &col);
@@ -467,6 +471,21 @@ int Editor::editorBackSpaceAction() {
     }
     // getRowAt(cursorPosRow)->updateRowContent(cursorPosCol, "", -1);
     getRowAt(cursorPosRow)->delRowContentLeft(--cursorPosCol, 1);
+}
+
+int Editor::editorDeleteWordAction() {
+    Row *row = getRowAt(cursorPosRow);
+    char *tmp = row->getContent();
+    int idx = 0;
+    debug::wtf(NULL, NULL, "Content: %d\n", idx);
+    for (idx=cursorPosCol; idx>=0; idx--) {
+        if (tmp[idx]==' ' || idx==0) break;
+    }
+    debug::wtf(NULL, NULL, "Content: %d\n", idx);
+    debug::wtf(NULL, NULL, "Content: %d\n", cursorPosCol);
+    row->delRowContentLeft(cursorPosCol-1, cursorPosCol-idx);
+    cursorPosCol=idx;
+    return 0;
 }
 
 int Editor::adjustRowCol() {
