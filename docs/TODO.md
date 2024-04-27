@@ -1,5 +1,6 @@
 ### Left
-- Spilling screenrows and resize window.
+- HandleRowbreak (this is bug).
+- Window size change (not implemented).
 ### Refactor
 - refactor return operations; 0 for true, -1 for false;
 ### std::string
