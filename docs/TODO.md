@@ -1,8 +1,11 @@
 ### Left
-- Move constructor for Row
+- Move constructor for Row.
 - Window size change (not implemented).
+- Syntax highlight.
+- Copy to system clipboard.
 ### Refactor
 - refactor return operations; 0 for true, -1 for false;
+- add extensive documentation.
 ### std::string
 - Translate from C-style malloc/realloc char* to std::string C++ style.
 ### Implementing rvalue references for constructors
