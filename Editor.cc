@@ -477,12 +477,9 @@ int Editor::editorDeleteWordAction() {
     Row *row = getRowAt(cursorPosRow);
     char *tmp = row->getContent();
     int idx = 0;
-    debug::wtf(NULL, NULL, "Content: %d\n", idx);
     for (idx=cursorPosCol; idx>=0; idx--) {
         if (tmp[idx]==' ' || idx==0) break;
     }
-    debug::wtf(NULL, NULL, "Content: %d\n", idx);
-    debug::wtf(NULL, NULL, "Content: %d\n", cursorPosCol);
     row->delRowContentLeft(cursorPosCol-1, cursorPosCol-idx);
     cursorPosCol=idx;
     return 0;
