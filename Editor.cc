@@ -35,48 +35,66 @@ void Row::setLen(int length){
 
 // CONSTRUCTORS
 Row::Row(){
-    content = (char*)malloc(sizeof(char));
-    content[1]=END_STRING;//empty string of '\0'
-    length=0;
+    this->content = (char*)malloc(sizeof(char));
+    if (this->content==NULL) {
+        throw std::runtime_error("Could not allocate memory at zero constructor");
+    }
+    this->length=0;
+    this->content[this->length]=END_STRING;//empty string of '\0'
 }
 Row::Row(int idx):idx(idx){
     content = (char*)malloc(sizeof(char));
-    content[1]=END_STRING;//empty string of '\0' with idx
-    length=0;
+    if (this->content==NULL) {
+        throw std::runtime_error("Could not allocate memory at one constructor");
+    }
+    this->length=0;
+    this->content[this->length]=END_STRING;//empty string of '\0'
 }
 Row::Row(int idx, char* content):idx(idx){
     int content_len = strlen(content);
-    this->content = (char*)malloc(sizeof(char)*content_len+1);
+    this->content = (char*)malloc(sizeof(char)*(content_len+1));
+    if (this->content==NULL) {
+        throw std::runtime_error("Could not allocate memory at two constructor");
+    }
     memcpy(this->content, content, content_len);
-    this->content[content_len]=END_STRING;
     this->length = content_len;
+    this->content[this->length]=END_STRING;
 }
 Row::Row(int idx, char* content, int length):idx(idx), length(length){
+    this->length = length;
     this->content = (char*)malloc(sizeof(char)*(length+1));
-    memcpy(this->content, content, length);
-    this->content[length] = END_STRING;
+    if (this->content==NULL) {
+        throw std::runtime_error("Could not allocate memory at three constructor.");
+    }
+    memcpy(this->content, content, this->length);
+    this->content[this->length] = END_STRING;
 }
 Row::Row(const Row& row):idx(row.idx),length(row.length){
-    if (content!=NULL) {
-        content=NULL;
+    // if (content!=NULL) {
+    //     content=NULL;
+    // }
+    // debug::wtf(NULL, NULL, "__BREAKPOINT_copyConstructor__\n");
+    this->content = (char*)malloc(sizeof(char)*(this->length+1));
+    if (this->content==NULL) {
+        throw std::runtime_error("Could not allocate memory at copy constructor");
     }
-    content = (char*)malloc(sizeof(char)*(length+1));
-    memcpy(content, row.content, length);
-    content[length]=END_STRING;
+    memcpy(this->content, row.content, this->length);
+    this->content[this->length]=END_STRING;
 }
 Row& Row::operator=(const Row& row) noexcept{
     if(this!=&row){
         this->idx=row.idx;
-        this->content=row.content;
+        // this->content=row.content;
         // this->cnt=row.cnt;
         if (content!=NULL) {
             free(content);
             content=NULL;
         }
-        content = (char*)malloc(sizeof(char)*(length+1));
-        if(content==NULL) throw std::runtime_error("Cannot allocate memory for left hand side.");
-        memcpy(content, row.content, length);
-        content[length]=END_STRING;
+        char* newContent = (char*)malloc(sizeof(char)*(length+1));
+        if(newContent==NULL) throw std::runtime_error("Cannot allocate memory for left hand side.");
+        memcpy(newContent, row.content, length);
+        newContent[length]=END_STRING;
+        content = newContent;
     }
     return *this;
 }
@@ -125,8 +143,10 @@ int Row::updateRowContent(int idx, char* add, int len){
 }
 int Row::insertRowContent(int idx, char* add, int len) {
     this->content = (char*) realloc(this->content, sizeof(char)*(this->length+len+1));
-    memmove(this->content+idx+len, this->content+idx, this->length-idx+1);
+    memmove(this->content+idx+len, this->content+idx, this->length-idx);
     memcpy(this->content+idx, add, len);
+    // debug::wtf(NULL, NULL, "__BREAKPOINT_insertRowContent__\n");
+    // debug::wtf(NULL, NULL, "RowCont: '%s'\n", this->content);
     this->length+=len;
     this->content[this->length]=END_STRING;
     return 0;
@@ -169,7 +189,14 @@ int Row::delRowContentLeft(int idx, int len){
     return 0;
 }
 
-Row::~Row(){free(this->content);}
+Row::~Row(){
+    // debug::wtf(NULL, NULL, "__BREAKPOINT_rowDestructor__\n");
+    if(this->content!=NULL){
+        free(this->content);
+        this->content=NULL;
+    }
+}
+// Row::~Row(){}
 
 /*
 ***************************************
@@ -181,6 +208,9 @@ Editor::Editor(){//empty editor
     winsize ws = termaction::getWindowSize();
     screenrows = ws.ws_row-1;
     editorCnt = (char*) malloc(sizeof(char));
+    if (editorCnt==NULL) {
+        throw std::runtime_error("Cannot allocate memory for editor content");
+    }
     lenEditorCnt = 0;//\0 does not count
     editorCnt[lenEditorCnt] = END_STRING;
     cursorPosCol=0;
@@ -195,7 +225,10 @@ Editor::Editor(){//empty editor
  }
 
 Editor::~Editor(){
-    free(editorCnt);
+    if (editorCnt!=NULL) {
+        free(editorCnt);
+        editorCnt=NULL;
+    }
 }
 
 
@@ -211,10 +244,14 @@ void Editor::editorFillTildas() {
 }
 
 void Editor::renderEditorCnt(){
-    if (lenEditorCnt!=0 || editorCnt[0]!=END_STRING){
-        lenEditorCnt=0;
-        editorCnt[0]=END_STRING;
-    }
+    // if (lenEditorCnt!=0 || editorCnt[0]!=END_STRING){
+    //     lenEditorCnt=0;
+    //     editorCnt[0]=END_STRING;
+    // }
+    free(editorCnt);
+    editorCnt=NULL;
+    lenEditorCnt=0;
+    editorCnt=(char*)malloc(sizeof(char));
     for (auto& i : rows) {
         // debug::wtf(NULL, NULL, "%s\n", i.getContent());
         appendEditorContent(i.getContent(), i.getLen());//vector implamentation of rows
@@ -226,7 +263,7 @@ void Editor::renderEditorCnt(){
 void Editor::appendEditorContent(char* cont, int len){
     char* tmp = (char*) realloc(editorCnt, lenEditorCnt+len+1);
     if (tmp==NULL){
-        return;
+        throw std::runtime_error("Cannot realloc memory for editor content");
     }
     memcpy(tmp+lenEditorCnt, cont, len);
     lenEditorCnt+=len;
@@ -235,6 +272,11 @@ void Editor::appendEditorContent(char* cont, int len){
 }
 
 void Editor::refreshEditorScreen(){
+    // debug::wtf(NULL, NULL, "__BREAKPOINT_refreshEditorScreen__\n");
+    // debug::wtf(NULL, NULL, "=======================\n");
+    for (auto& i : rows) {
+        debug::wtf(NULL, NULL, "Row %d: '%s'\n", i.getIdx(), i.getContent());
+    }
     termaction::hidecursor(ofd);
     // termaction::setCursorPos(ofd, cursorPosRow+1, 1);
     // termaction::clrght(ofd);
@@ -293,6 +335,7 @@ void Editor::insertRowAt(Row& row, int idx) {
     } else {
         // rows.insert(rows.begin()+idx, std::forward<Row>(row));//vector implementation of rows
         rows.insert(rows.begin()+idx, row);//vector implementation of rows
+        debug::wtf(NULL, NULL, "ROW INSERT\n");
     }
     // rows[idx]=row;//unordered_map implementation of rows
 }
@@ -314,7 +357,10 @@ void Editor::removeRowAt(int idx) {
         rows.pop_back();//vector implementation of rows
     } else {
         // rows.insert(rows.begin()+idx, std::forward<Row>(row));//vector implementation of rows
+        // debug::wtf(NULL, NULL, "__BREAKPOINT_removeRowAt__\n");
+        // debug::wtf(NULL, NULL, "rowslen: %d\n", getNRow());
         rows.erase(rows.begin()+idx);//vector implementation of rows
+        // debug::wtf(NULL, NULL, "__BREAKPOINT_removeRowAt__\n");
     }
     // rows[idx]=row;//unordered_map implementation of rows
 }
@@ -322,10 +368,15 @@ void Editor::removeRowAt(int idx) {
 void Editor::handleRemoveRow(int idx){
     // char *tmp_cnt = getRowAt(idx)->getContent();
     Row *rowUp = getRowAt(idx-1);
-    debug::wtf(NULL, NULL, "LenUp: %d\n", rowUp->getLen());
+    // debug::wtf(NULL, NULL, "LenUp: %d\n", rowUp->getLen());
     Row *rowDown = getRowAt(idx);
-    getRowAt(idx-1)->updateRowContent(rowUp->getLen(), rowDown->getContent(), rowDown->getLen());
+    // debug::wtf(NULL, NULL, "LenUp: %d\n", rowUp->getLen());
+    // debug::wtf(NULL, NULL, "ContDown: '%s'\n", rowDown->getContent());
+    // debug::wtf(NULL, NULL, "LenDown: %d\n", rowDown->getLen());
+    // getRowAt(idx-1)->updateRowContent(rowUp->getLen(), rowDown->getContent(), rowDown->getLen());
+    getRowAt(idx-1)->insertRowContent(rowUp->getLen(), rowDown->getContent(), rowDown->getLen());
     removeRowAt(idx);
+    // debug::wtf(NULL, NULL, "__BREAKPOINT_handleRemoveRow\n");
 }
 
 void Editor::handleBreakRow(int idxr, int idxc){
@@ -373,6 +424,7 @@ int Editor::editorKeyAction(){
             case BACKSPACE:
                 // termaction::backspace(ofd);
                 editorBackSpaceAction();
+                // debug::wtf(NULL, NULL, "__BREAKPOINT_editorKeyAction__\n");
                 break;
             case ESC:
                 if ((c=termaction::readKeyStroke(ifd))!=-1 && c==LEFT_SQUARE){
@@ -427,12 +479,17 @@ int Editor::editorTypeAction(char* c, unsigned l) {//what to do when typing
 int Editor::editorEnterAction() {//what to do when ENTER pressed
     if (cursorPosCol==getRowAt(cursorPosRow)->getLen()) {
         // getRowAt(cursorPosRow)->updateRowContent(cursorPosCol, "\r\n", 2);
-        cursorPosRow++;
-        cursorPosCol=0;
-        Row row = Row(cursorPosRow, "", 0);
-        insertRowAt(row, cursorPosRow);
         // debug::wtf(NULL, NULL, "================\n");
         // debug::wtf(NULL, NULL, "VectorSize: %d\n", getNRow());
+        // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
+        cursorPosRow++;
+        cursorPosCol=0;
+        Row row = Row(cursorPosRow, " ", 0);
+        insertRowAt(row, cursorPosRow);
+        // debug::wtf(NULL, NULL, "-----------------\n");
+        // debug::wtf(NULL, NULL, "VectorSize: %d\n", getNRow());
+        // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
+        // debug::wtf(NULL, NULL, "================\n");
         // debug::wtf(NULL, NULL, "VectorLastContent: %s\n", getRowAt(cursorPosRow-1)->getContent());
         // debug::wtf(NULL, NULL, "EditorContent:\n %s\n", getEditorCnt());
         return 0;
@@ -446,6 +503,8 @@ int Editor::editorBackSpaceAction() {
     if (cursorPosCol-1<0) {
         if (cursorPosRow>0) {
             cursorPosCol=getRowAt(cursorPosRow-1)->getLen();//send 
+            // debug::wtf(NULL, NULL, "CursorPosRow: %d\n", cursorPosRow);
+            // debug::wtf(NULL, NULL, "CursorPosCol: %d\n", cursorPosCol);
             handleRemoveRow(cursorPosRow);
             cursorPosRow--;
             return 0;

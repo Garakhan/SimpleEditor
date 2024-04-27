@@ -69,13 +69,13 @@ class Editor : private Types {
 
     std::vector<Row> rows; // rows of the editor
     // std::unordered_map<row_nt, Row> rows;
-    row_nt screenrows; // number of visible row on screen
+    int screenrows; // number of visible row on screen
     char* editorCnt=NULL; //editor content
-    row_nt lenEditorCnt; //length editor content
-    row_nt cursorPosRow;
-    row_nt cursorPosCol;
-    row_nt maxPosRow;
-    row_nt maxPosCol;
+    int lenEditorCnt; //length editor content
+    int cursorPosRow;
+    int cursorPosCol;
+    int maxPosRow;
+    int maxPosCol;
     const std::string filename;
     int ifd, ofd;
 
@@ -85,9 +85,9 @@ class Editor : private Types {
     ~Editor();
     Editor();
 
-    Row* getRowAt(row_nt);//get row at index
+    Row* getRowAt(int);//get row at index
     row_nt getScreenRows(void);//get screenrows (number of visible(window) screen)
-    void setNScreenRows(row_nt);//set screenrows (number of visible(window) screen)
+    void setNScreenRows(int);//set screenrows (number of visible(window) screen)
     row_nt getNRow(void);//get number of rows (size of std::vector<Row> rows)
     
 
@@ -130,7 +130,7 @@ class Editor : private Types {
 
     //friend functions
     friend int termaction::getCursorPosition(int, int, int*, int*);
-    friend inline size_t termaction::setCursorPos(int, int, int);
+    friend inline int termaction::setCursorPos(int, int, int);
     friend int termaction::getWindowSize(int, int, int*, int*);
 
     //main loop

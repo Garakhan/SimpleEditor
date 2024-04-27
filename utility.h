@@ -105,15 +105,14 @@ namespace termaction {
         int seql = write(ofd, CURSOR_C_BACKSPC, CURSOR_L_BACKSPC);
         return seql;
     }
-
     inline int twrite(int ofd, char* s, int l){
         int seql = write(ofd, s, l);
         return seql;
     }
-    inline size_t setCursorPos(int ofd, int row, int col) {
+    inline int setCursorPos(int ofd, int row, int col) {
         char cursorPosSeq[80];
         sprintf(cursorPosSeq, "\x1b[%zu;%zuH", row, col);
-        size_t seq = write(ofd, cursorPosSeq, strlen(cursorPosSeq));
+        int seq = write(ofd, cursorPosSeq, strlen(cursorPosSeq));
         return seq;
     }
 

@@ -99,7 +99,7 @@ namespace termaction {
         if (read(ifd, &c, 1)!=1) return -1;
         return c;
     }
-}
+}//termaction::
 
 namespace debug {
     void wtf (char* filename, char* m, char* c, ...) {
