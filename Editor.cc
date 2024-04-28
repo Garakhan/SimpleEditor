@@ -291,7 +291,7 @@ void Editor::refreshEditorScreen(){
     //     getRowAt(cursorPosRow)->getContent(),
     //     getRowAt(cursorPosRow)->getLen()
     // );//with lenEditorContent
-    // editorFillTildas();
+    editorFillTildas();
     termaction::twrite(ofd, editorCnt, lenEditorCnt);
     // adjustRowCol();
 

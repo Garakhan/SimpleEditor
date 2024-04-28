@@ -1,7 +1,6 @@
 ### Left
-- Move constructor for Row.
 - Window size change (not implemented).
-- Syntax highlight.
+- Syntax highlight by mouse.
 - Copy to system clipboard.
 ### Refactor
 - refactor return operations; 0 for true, -1 for false;
