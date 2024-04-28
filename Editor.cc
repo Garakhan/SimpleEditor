@@ -98,24 +98,44 @@ Row& Row::operator=(const Row& row) noexcept{
     }
     return *this;
 }
-// Row::Row(Row&& row):idx(row.idx), content(row.content), length(row.length){
-//     row.idx=0;
-//     free(row.content);
-//     row.content=nullptr;
-//     row.length=0;
-// }
-// Row& Row::operator=(Row&& row) noexcept{
-//     if(this!=&row){
-//         this->idx=row.idx;
-//         this->content=row.content;
-//         this->length=row.length;
-//         row.idx=0;
-//         free(row.content);
-//         row.content=nullptr;
-//         row.length=0;
-//     }
-//     return *this;
-// }
+
+Row::Row(Row&& row):idx(row.idx), length(row.length){
+    this->content = (char*)malloc(sizeof(char)*(this->length+1));
+    if (this->content==NULL) {
+        throw std::runtime_error("Could not allocate memory at copy constructor");
+    }
+    memcpy(this->content, row.content, this->length);
+    this->content[this->length]=END_STRING;
+
+    // row.idx=0;
+    // free(row.content);
+    // row.content=nullptr;
+    // row.length=0;
+}
+Row& Row::operator=(Row&& row) noexcept{
+    if(this!=&row){
+        this->idx=row.idx;
+        this->length = row.length;
+        // this->content=row.content;
+        // this->cnt=row.cnt;
+        if (content!=NULL) {
+            free(content);
+            content=NULL;
+        }
+
+        char* newContent = (char*)malloc(sizeof(char)*(length+1));
+        if(newContent==NULL) throw std::runtime_error("Cannot allocate memory for left hand side.");
+        memcpy(newContent, row.content, length);
+        newContent[length]=END_STRING;
+        content = newContent;
+
+        // row.idx=0;
+        // free(row.content);
+        // row.content=nullptr;
+        // row.length=0;
+    }
+    return *this;
+}
 
 int Row::updateRowContent(int idx, char* add, int len){
 
@@ -205,8 +225,9 @@ Editor::Editor(){//empty editor
     cursorPosRow=0;
     ifd = STDIN_FILENO;
     ofd = STDOUT_FILENO;
-    Row row = Row(0, "", 0);
-    insertRowAt(row, cursorPosRow);
+    // Row row = Row(0, "", 0);
+    // insertRowAt(row, cursorPosRow);
+    insertRowAt<Row>(Row(0, "", 0), cursorPosRow);
     // editorFillTildas();
     // renderEditorCnt();
     refreshEditorScreen();
@@ -270,7 +291,7 @@ void Editor::refreshEditorScreen(){
     //     getRowAt(cursorPosRow)->getContent(),
     //     getRowAt(cursorPosRow)->getLen()
     // );//with lenEditorContent
-    editorFillTildas();
+    // editorFillTildas();
     termaction::twrite(ofd, editorCnt, lenEditorCnt);
     // adjustRowCol();
 
@@ -291,16 +312,16 @@ void Editor::refreshEditorScreen(){
 //     // rows[idx]=row;//unordered_map implementation of rows
 // }
 
-// template<typename R>// R for Row
-// void Editor::insertRowAt(R&& row, row_nt idx) {
-//     // appendEditorContent(row.getContent(), strlen(row.getContent()));//appendEditorContent is called in renderEditorCnt function
-//     if (idx==getNRow()+1){
-//         rows.push_back(std::forward<R>(row));//vector implementation of rows
-//     } else {
-//         rows.insert(rows.begin()+idx, std::forward<R>(row));//vector implementation of rows
-//     }
-//     // rows[idx]=row;//unordered_map implementation of rows
-// }
+template<typename R>// R for Row
+void Editor::insertRowAt(R&& row, int idx) {
+    // appendEditorContent(row.getContent(), strlen(row.getContent()));//appendEditorContent is called in renderEditorCnt function
+    if (idx==getNRow()+1){
+        rows.push_back(std::forward<R>(row));//vector implementation of rows
+    } else {
+        rows.insert(rows.begin()+idx, std::forward<R>(row));//vector implementation of rows
+    }
+    // rows[idx]=row;//unordered_map implementation of rows
+}
 
 
 void Editor::insertRowAt(Row& row, int idx) {
@@ -349,10 +370,11 @@ void Editor::handleRemoveRow(int idx){
 void Editor::handleBreakRow(int idxr, int idxc){
     Row *row = getRowAt(idxr);
     char *tmp = row->getContent()+idxc;
-    Row newRow = Row(idxr+1, tmp, row->getLen()-idxc);
-    row->delRowContentRight(idxc, row->getLen()-idxc);
+    // Row newRow = Row(idxr+1, tmp, row->getLen()-idxc);
     // row->delRowContent(cursorPosCol-1, 2, 1);
-    insertRowAt(newRow, idxr+1);
+    // insertRowAt(newRow, idxr+1);
+    insertRowAt<Row>(Row(idxr+1, tmp, row->getLen()-idxc), idxr+1);
+    getRowAt(idxr)->delRowContentRight(idxc, getRowAt(idxr)->getLen()-idxc);
 }
 
 // template<typename R>// R for Row
@@ -376,7 +398,6 @@ int Editor::editorKeyAction(){
     int row = 8;
     int col = 10;
     if((c=termaction::readKeyStroke(ifd))!=-1) {
-        // debug::wtf(NULL, NULL, "Pressed: %d\n", c);
         switch(int(c)){
             case CTRL_Q:
                 editorExitAction();//atexit will handle post-exit setups(disableRawMode). see termaction:: at utility.h
@@ -447,8 +468,9 @@ int Editor::editorEnterAction() {//what to do when ENTER pressed
         // getRowAt(cursorPosRow)->updateRowContent(cursorPosCol, "\r\n", 2);
         cursorPosRow++;
         cursorPosCol=0;
-        Row row = Row(cursorPosRow, "", 0);
-        insertRowAt(row, cursorPosRow);
+        // Row row = Row(cursorPosRow, "", 0);
+        // insertRowAt(row, cursorPosRow);
+        insertRowAt<Row>(Row(cursorPosRow, "", 0), cursorPosRow);
         return 0;
     } 
     handleBreakRow(cursorPosRow, cursorPosCol);

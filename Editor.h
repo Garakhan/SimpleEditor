@@ -39,8 +39,8 @@ class Row : private Types {
     Row(int, char*, int);
     Row(const Row& row);
     Row& operator=(const Row&) noexcept;
-    // Row(Row&& row);
-    // Row& operator=(Row&&) noexcept;
+    Row(Row&& row);
+    Row& operator=(Row&&) noexcept;
     ~Row();
 
     int getIdx(void);
@@ -111,7 +111,7 @@ class Editor : private Types {
     void handleBreakRow(int, int);//break row at idx and create two rows
     // template<typename R> void pushBackRow(R&&);//pushback Row
     // template<typename R> void pushBackRow(Row&&);//pushback Row
-    // template<typename R> void insertRowAt(R&&, row_nt);//insert Row
+    template<typename R> void insertRowAt(R&&, int);//insert Row
     // template<typename R> void insertRowAt(R&&);//insert Row
 
     // ========= Editor Key Action =========
